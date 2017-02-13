@@ -643,6 +643,155 @@ function compute_enrichment{S <: AbstractString}(
 end
 
 """
+"""
+function compute_Reggae{S <: AbstractString}(
+	matrix::Resource,
+	scores::Resource,
+	regulations::AbstractString,
+	method::AbstractString="wrs-test",
+	order::AbstractString="decreasingly",
+	impactScore::AbstractString="pearson_correlation",
+	scoringMode::AbstractString="absolute",
+	adjustment::AbstractString"benjamini_hochberg",
+	bootstrappingRuns::Integer=1000,
+	confidenceIntervals::AbstractString="percentile",
+	significance::Number=0.1,
+	seed::Integer=-1,
+	printstatus::Bool=true
+)
+	job_params = Dict(
+		"matrix"              => matrix.id,
+		"scores"              => scores.id,
+		"regulations"         => regulations,
+		"method"              => method,
+		"order"               => order,
+		"impactScore"         => impactScore,
+		"scoringMode"         => scoringMode,
+		"adjustment"          => adjustment,
+		"bootstrappingRuns"   => bootstrappingRuns,
+		"confidenceIntervals" => confidenceIntervals,
+		"significance"        => significance,
+		"seed"                => seed
+	);
+
+	job_setup(scores.session, "reggae", job_params);
+	job_start(scores.session);
+
+	return job_wait(scores.session, printstatus=printstatus)["reggae"];
+end
+
+"""
+"""
+function compute_RIF{S <: AbstractString}(
+	which::Integer,
+	matrix::Resource,
+	scores::Resource,
+	samplegroup::Array{S,1},
+	referencegroup::Array{S,1},
+	scoring_mode::AbstractString="raw",
+	regulations::AbstractString="",
+	printstatus::Bool=true
+)
+	job_params = Dict(
+		"matrix"           => matrix.id,
+		"scores"           => scores.id,
+		"sg"               => JSON.json(samplegroup),
+		"rg"               => JSON.json(referencegroup),
+		"scoring_mode"     => scoring_mode,
+		"regulations"      => regulations
+	);
+
+	job_setup(scores.session, "rif$(which)", job_params);
+	job_start(scores.session);
+
+	return job_wait(scores.session, printstatus=printstatus)["RIF$(which)"];
+end
+
+"""
+"""
+function compute_RIF1{S <: AbstractString}(
+	matrix::Resource,
+	scores::Resource,
+	samplegroup::Array{S,1},
+	referencegroup::Array{S,1},
+	scoring_mode::AbstractString="raw",
+	regulations::AbstractString="",
+	printstatus::Bool=true	
+)
+	return compute_RIF(1, matrix, scores, samplegroup, referencegroup,
+			   scoring_mode, regulations, printstatus);
+end
+
+"""
+"""
+function compute_RIF2{S <: AbstractString}(
+	matrix::Resource,
+	scores::Resource,
+	samplegroup::Array{S,1},
+	referencegroup::Array{S,1},
+	scoring_mode::AbstractString="raw",
+	regulations::AbstractString="",
+	printstatus::Bool=true	
+)
+	return compute_RIF(2, matrix, scores, samplegroup, referencegroup,
+			   scoring_mode, regulations, printstatus);
+end
+
+"""
+"""
+function compute_TEPIC{S <: AbstractString}(
+	intervals::Resource,
+	windowSize::Integer,
+	geneList::AbstractString="",
+	duplicateMethod::AbstractString="median",
+	printstatus::Bool=true
+)
+	job_params = Dict(
+		"intervals"        => intervals.id,
+		"windowSize"       => windowSize,
+		"geneList"         => geneList,
+		"duplicateMethod"  => duplicateMethod
+	);
+	
+	job_setup(intervals.session, "tepic", job_params);
+	job_start(intervals.session);
+
+	return job_wait(intervals.session, printstatus=printstatus)["tepic"];
+end
+
+"""
+"""
+function compute_INVOKE{S <: AbstractString}(
+	scores::Resource,
+	tepicResult::Resource,
+	alpha::Numeric,
+	testSetSize::Integer,
+	regularizationMethod::AbstractString,
+	innerCV::Integer,
+	outerCV::Integer,
+	constraint::AbstractString,
+	duplicateMethod::AbstractString="median",
+	printstatus::Bool=true,
+)
+	job_params = Dict(
+		"scores"               => scores.id,
+		"tepicResult"          => tepicResult.id,
+		"alpha"                => alpha,
+		"testSetSize"          => testSetSize,
+		"regularizationMethod" => regularizationMethod,
+		"innerCV"              => innerCV,
+		"outerCV"              => outerCV,
+		"constraint"           => constraint,
+		"duplicateMethod"      => duplicateMethod
+	);
+
+	job_setup(scores.session, "invoke", job_params);
+	job_start(scores.session);
+
+	return job_wait(scores.session, printstatus=printstatus)["invoke"];
+end
+
+"""
 Convenience method for reading downloaded enrichments as `DataFrame`s.
 
 ### Arguments
